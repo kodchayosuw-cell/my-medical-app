@@ -94,7 +94,7 @@ if login():
     df["display_name"] = df["ICD10"] + " - " + df["อาการ"]
 
     # --- 4. ส่วน UI และระบบคำนวณ ---
-    st.title("💊 Master Medical Dispensing System (ICD-10 Ready)")
+    st.title("💊 Kodchayo Master Medical Dispensing System")
     st.write(f"ผู้ใช้งาน: {st.session_state.user} | ฐานข้อมูลรองรับ {len(med_list)} กลุ่มอาการมาตรฐาน")
     st.markdown("---")
 
@@ -127,4 +127,5 @@ if login():
 
     with st.expander("📚 ดูฐานข้อมูล ICD-10 และยาทั้งหมด"):
         st.dataframe(df[["ICD10", "อาการ", "ยา", "วิธีใช้", "คำเตือน"]], use_container_width=True)
+
 
