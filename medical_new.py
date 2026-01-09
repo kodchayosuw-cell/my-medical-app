@@ -58,7 +58,7 @@ def local_css():
 local_css()
 
 # --- 2. ระบบ Login ---
-USERS_DB = {"admin": "password123", "kodchayo_suw": "2012", "Thirachai": "7547"}
+USERS_DB = {"admin": "password123", "kodchayo_suw": "2012", "Thirachai": "7547", "Oilsdu": "164511"}
 
 def login():
     if "logged_in" not in st.session_state: st.session_state.logged_in = False
@@ -230,3 +230,4 @@ if login():
         st.dataframe(df[["ICD10", "อาการ", "ยา_เด็ก", "ยา_ผู้ใหญ่", "วิธีใช้", "คำเตือน"]], use_container_width=True, hide_index=True)
 
     st.markdown("<br><hr><center><small>© 2026 Kodchayo Medical System | Verified for Healthcare Professionals</small></center>", unsafe_allow_html=True)
+
