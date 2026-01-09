@@ -5,7 +5,7 @@ import pandas as pd
 st.set_page_config(page_title="Kodchayo Medical System 2026", page_icon="💊", layout="wide")
 
 # --- 2. ระบบ Login ---
-USERS_DB = {"admin": "password123", "kodchayo_suw": "20122539", "Thirachai": "7547"}
+USERS_DB = {"admin": "password123", "kodchayo_suw": "2012", "Thirachai": "7547"}
 
 def login():
     if "logged_in" not in st.session_state: st.session_state.logged_in = False
@@ -150,3 +150,4 @@ if login():
 
     with st.expander("📚 ดูฐานข้อมูลยาเด็ก-ผู้ใหญ่ ทั้ง 45 รายการ"):
         st.dataframe(df[["ICD10", "อาการ", "ยา_เด็ก", "ยา_ผู้ใหญ่", "วิธีใช้", "คำเตือน"]], use_container_width=True)
+
