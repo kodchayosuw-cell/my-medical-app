@@ -3,27 +3,59 @@ import pandas as pd
 from datetime import datetime
 import os
 
-# --- 1. การตั้งค่าหน้าจอและการออกแบบ ---
+# --- 1. การตั้งค่าหน้าจอและการออกแบบ (Professional Medical UI) ---
 st.set_page_config(page_title="Kodchayo Medical System 2026", page_icon="⚕️", layout="wide")
 
 def local_css():
     st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Sarabun', sans-serif; }
-    .main { background-color: #f0f2f6; }
-    .login-box { background-color: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
-    section[data-testid="stSidebar"] { background-color: #0f172a; color: white; }
-    /* ปรับปุ่มให้ตัวอักษรเป็นสีดำ */
-    div.stButton > button { color: black !important; font-weight: bold; border-radius: 8px; }
-    .med-card { background-color: white; padding: 20px; border-radius: 12px; border-left: 5px solid #3b82f6; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    
+    html, body, [class*="css"] {
+        font-family: 'Sarabun', sans-serif;
+    }
+    
+    .main {
+        background-color: #f0f2f6;
+    }
+    
+    /* Login Box */
+    .login-box {
+        background-color: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+    }
+    
+    /* Sidebar Styling */
+    section[data-testid="stSidebar"] {
+        background-color: #0f172a;
+        color: white;
+    }
+    
+    /* แก้ไขปุ่มทั้งหมดให้ตัวอักษรเป็นสีดำ */
+    div.stButton > button {
+        color: black !important;
+        font-weight: bold;
+    }
+    
+    /* Highlight Box */
+    .med-card {
+        background-color: white;
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 5px solid #3b82f6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 local_css()
 
 # --- 2. ฟังก์ชันบันทึกข้อมูล (Logging Function) ---
-def save_log(user, weight, age, symptoms, prescribed_meds):
+def save_log(user, weight, age, symptoms, prescribed_meds, totals):
     log_file = "usage_log.csv"
     log_data = {
         "Timestamp": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
@@ -31,11 +63,10 @@ def save_log(user, weight, age, symptoms, prescribed_meds):
         "Patient_Weight": [weight],
         "Patient_Age": [age],
         "Symptoms": [", ".join(symptoms)],
-        "Prescribed_Meds": [", ".join(prescribed_meds)]
+        "Prescribed_Meds": [", ".join(prescribed_meds)],
+        "Total_Units": [", ".join(totals)]
     }
     df_log = pd.DataFrame(log_data)
-    
-    # ถ้าไฟล์มีอยู่แล้วให้เขียนต่อ (append) ถ้าไม่มีให้สร้างใหม่พร้อม Header
     if not os.path.isfile(log_file):
         df_log.to_csv(log_file, index=False, encoding="utf-8-sig")
     else:
@@ -46,16 +77,24 @@ USERS_DB = {"admin": "password123", "kodchayo_suw": "2012", "Thirachai": "7547"}
 
 def login():
     if "logged_in" not in st.session_state: st.session_state.logged_in = False
+    
     if not st.session_state.logged_in:
         col1, col2, col3 = st.columns([1, 1.2, 1])
         with col2:
             st.markdown("<br><br><br>", unsafe_allow_html=True)
-            st.markdown("<div style='text-align: center;'><h1 style='color: #1e3a8a;'>⚕️ KODCHAYO</h1><p>Medical System 2026</p></div>", unsafe_allow_html=True)
+            st.markdown("""
+                <div style='text-align: center;'>
+                    <h1 style='color: #1e3a8a; margin-bottom: 0;'>⚕️ KODCHAYO</h1>
+                    <p style='color: #64748b;'>Medical Dispensing System 2026</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
             st.markdown("<div class='login-box'>", unsafe_allow_html=True)
             with st.form("login_form"):
                 user = st.text_input("Username")
                 pw = st.text_input("Password", type="password")
-                if st.form_submit_button("เข้าสู่ระบบ", use_container_width=True):
+                submit = st.form_submit_button("เข้าสู่ระบบเพื่อใช้งาน", use_container_width=True)
+                if submit:
                     if user in USERS_DB and USERS_DB[user] == pw:
                         st.session_state.logged_in, st.session_state.user = True, user
                         st.rerun()
@@ -68,10 +107,11 @@ if login():
     # --- 4. Sidebar ---
     with st.sidebar:
         st.markdown("### 👤 ข้อมูลผู้ป่วย")
-        weight = st.number_input("น้ำหนักตัว (kg):", min_value=1.0, value=15.0)
-        age = st.number_input("อายุ (ปี):", min_value=0, value=5)
+        weight = st.number_input("น้ำหนักตัว (kg):", min_value=1.0, max_value=200.0, value=15.0)
+        age = st.number_input("อายุ (ปี):", min_value=0, max_value=120, value=5)
         st.divider()
-        if st.button("ออกจากระบบ", use_container_width=True):
+        st.write(f"🩺 ผู้ใช้งาน: **{st.session_state.user}**")
+        if st.button("ออกจากระบบ"):
             st.session_state.logged_in = False
             st.rerun()
 
@@ -127,7 +167,7 @@ if login():
         {"ICD10": "M17.9", "อาการ": "ปวดข้อเข่า / ข้อเสื่อม", "ยา_เด็ก": "-", "ยา_ผู้ใหญ่": "Glucosamine Sulfate", "mg_ml": 0, "mg_kg": 0, "ความถี่": 1, "วิธีใช้": "ละลายน้ำดื่มวันละ 1 ซอง", "คำเตือน": "ระวังในคนแพ้อาหารทะเล"},
         {"ICD10": "K05.2", "อาการ": "เหงือกอักเสบเป็นหนอง", "ยา_เด็ก": "Amoxicillin Syrup", "ยา_ผู้ใหญ่": "Metronidazole 400", "mg_ml": 50, "mg_kg": 15, "ความถี่": 3, "วิธีใช้": "หลังอาหาร เช้า-กลางวัน-เย็น", "คำเตือน": "ห้ามดื่มแอลกอฮอล์ขณะกินยา"},
         {"ICD10": "J45.9", "อาการ": "หอบหืด / หายใจไม่ออก", "ยา_เด็ก": "Salbutamol Syrup", "ยา_ผู้ใหญ่": "Salbutamol Inhaler", "mg_ml": 0.4, "mg_kg": 0.1, "ความถี่": 3, "วิธีใช้": "พ่นเมื่อมีอาการ (ผู้ใหญ่)", "คำเตือน": "หากไม่ดีขึ้นรีบไป รพ."},
-        {"ICD10": "N20.0", "อาการ": "นิ่วในทางเดินปัสสาวะ (เบื้องต้น)", "ยา_เด็ก": "-", "ยา_ผู้ใหญ่": "Ural (ยาขับนิ่ว)", "mg_ml": 0, "mg_kg": 0, "ความถี่": 3, "วิธีใช้": "ละลายน้ำดื่มหลังอาหาร", "คำเตือน": "ควรดื่มน้ำวันละ 2-3 ลิตร"},
+        {"ICD10": "N20.0", "อาการ": "นิ่วในทางเดินปัสสาวะ (เบื้องต้น)", "ยา_เด็ก": "-", "ยา_ผู้ใหญ่": "Ural (ยาขับนิ่ว)", "mg_ml": 0, "mg_kg": 0, "ความถี่": 3, "วิธีใช้": "ละลายน้ำดื่มหลังอาหาร", "คำเตือน": "ควรดื่มน้ำวันละ 2-3 ลิต"},
         {"ICD10": "R63.0", "อาการ": "เบื่ออาหาร / ตัวเล็ก", "ยา_เด็ก": "Lysine Syrup", "ยา_ผู้ใหญ่": "Vitamin B Complex", "mg_ml": 1, "mg_kg": 0.5, "ความถี่": 1, "วิธีใช้": "วันละ 1 ครั้งก่อนอาหาร", "คำเตือน": "-"},
         {"ICD10": "L20.9", "อาการ": "ผิวหนังอักเสบ / ภูมิแพ้ผิวหนัง", "ยา_เด็ก": "TA Cream 0.02%", "ยา_ผู้ใหญ่": "TA Cream 0.1%", "mg_ml": 0, "mg_kg": 0, "ความถี่": 2, "วิธีใช้": "ทาบริเวณที่เป็น เช้า-เย็น", "คำเตือน": "ห้ามทาติดต่อกันเกิน 2 สัปดาห์"},
         {"ICD10": "G47.0", "อาการ": "นอนไม่หลับ (เครียดสะสม)", "ยา_เด็ก": "-", "ยา_ผู้ใหญ่": "Melatonin 2mg", "mg_ml": 0, "mg_kg": 0, "ความถี่": 1, "วิธีใช้": "กินก่อนนอน 30 นาที", "คำเตือน": "ห้ามขับรถหลังกินยา"},
@@ -138,44 +178,88 @@ if login():
         {"ICD10": "H92.0", "อาการ": "ปวดหูจากการขึ้นเครื่องบิน/ดำน้ำ", "ยา_เด็ก": "CPM Syrup", "ยา_ผู้ใหญ่": "Pseudoephedrine", "mg_ml": 0.4, "mg_kg": 0.1, "ความถี่": 3, "วิธีใช้": "กินก่อนเดินทาง 30 นาที", "คำเตือน": "ระวังในคนเป็นความดันสูง ต้องใช้ภายใต้คำแนะนำของแพทย์"},
         {"ICD10": "R23.4", "อาการ": "ผิวแห้งมาก / ผิวแตก", "ยา_เด็ก": "Urea Cream 5%", "ยา_ผู้ใหญ่": "Urea Cream 10%", "mg_ml": 0, "mg_kg": 0, "ความถี่": 2, "วิธีใช้": "ทาหลังอาบน้ำ", "คำเตือน": "-"}
     ]
+
     df = pd.DataFrame(med_list)
     df["display_name"] = df["ICD10"] + " - " + df["อาการ"]
 
-    # --- 6. Main App ---
-    st.markdown("## 💊 Kodchayo Smart Dispensing 2026")
+    # --- 6. ส่วนหน้าหลัก App ---
+    st.markdown(f"## 💊 Kodchayo Smart Dispensing 2026")
+    
     type_label = "🧑‍🦲 ผู้ใหญ่" if age >= 12 else "👶 เด็ก"
     
     col_info, col_search = st.columns([1, 2])
     with col_info:
-        st.markdown(f"<div class='med-card'><h4>ข้อมูลคนไข้</h4><p>กลุ่ม: <b>{type_label}</b></p><p>นน: <b>{weight} kg</b> | อายุ: <b>{age} ปี</b></p></div>", unsafe_allow_html=True)
-    
+        st.markdown(f"""
+            <div class='med-card'>
+                <h4 style='margin:0; color:#1e3a8a;'>ข้อมูลคนไข้</h4>
+                <p style='margin:0;'>กลุ่ม: <b>{type_label}</b></p>
+                <p style='margin:0;'>นน: <b>{weight} kg</b> | อายุ: <b>{age} ปี</b></p>
+            </div>
+        """, unsafe_allow_html=True)
+        
     with col_search:
         selected_displays = st.multiselect("🔍 ค้นหาอาการหรือ ICD-10:", sorted(df["display_name"].tolist()))
-        days = st.number_input("📅 จำนวนวันที่จ่ายยา:", min_value=1, value=3)
+        days = st.number_input("📅 จำนวนวันที่ต้องการจ่ายยา:", min_value=1, max_value=30, value=3)
 
     if selected_displays:
         final_res = df[df["display_name"].isin(selected_displays)].copy()
-        
-        def calc_dose(row):
+
+        # ฟังก์ชันคำนวณโดสต่อครั้ง
+        def calculate_smart_dose(row):
+            restricted_for_kids = ["N30.9", "N76.0", "G43.9"]
+            if age < 12 and row['ICD10'] in restricted_for_kids and row['ยา_เด็ก'] == "-":
+                return "❌ ห้ามใช้ในเด็ก / ส่งต่อแพทย์"
             if age < 12 and row['mg_ml'] > 0:
                 cc = (row['mg_kg'] * weight) / row['mg_ml']
-                return f"{round(cc, 1)} ml" if cc >= 5 else "5.0 ml"
-            return "1 เม็ด/หน่วย"
+                if cc < 2.5: return "2.5 ml (1/2 ช้อนชา)"
+                if cc < 5.0: return "5.0 ml (1 ช้อนชา)"
+                return f"{round(cc, 1)} ml"
+            if age >= 12 and "Paracetamol" in row['ยา_ผู้ใหญ่']:
+                if weight >= 75: return "2 เม็ด"
+                if weight <= 34: return "0.5 เม็ด"
+                return "1 เม็ด"
+            return "1 หน่วย (ตามปกติ)"
 
         final_res['ยาที่จ่าย'] = final_res.apply(lambda r: r['ยา_ผู้ใหญ่'] if age >= 12 else r['ยา_เด็ก'], axis=1)
-        final_res['โดสแนะนำ'] = final_res.apply(calc_dose, axis=1)
+        final_res['โดสแนะนำ/ครั้ง'] = final_res.apply(calculate_smart_dose, axis=1)
 
-        st.table(final_res[["ICD10", "อาการ", "ยาที่จ่าย", "โดสแนะนำ", "วิธีใช้", "คำเตือน"]])
+        # ฟังก์ชันคำนวณยอดรวม (ที่เคยหายไป)
+        def calculate_total_units(row):
+            if "❌" in row['โดสแนะนำ/ครั้ง']: return "งดจ่าย"
+            # ถ้าเป็นยาน้ำ (มีหน่วย ml) ให้จ่ายเป็นขวด
+            if "ml" in row['โดสแนะนำ/ครั้ง']: return "1 ขวด"
+            # ถ้าเป็นยาเฉพาะกิจที่หน่วยเป็น ขวด/หลอด/ห่อ อยู่แล้ว
+            if any(x in row['ยาที่จ่าย'] for x in ["ขวด", "หลอด", "ห่อ", "ซอง", "น้ำตาเทียม", "สเปรย์"]): 
+                return "1 หน่วย"
+            # คำนวณตามจำนวนวัน (1 หน่วย * ความถี่ต่อวัน * จำนวนวัน)
+            return f"{int(1 * row['ความถี่'] * days)} เม็ด/หน่วย"
+
+        final_res['ยอดรวมทั้งหมด'] = final_res.apply(calculate_total_units, axis=1)
+
+        st.markdown("### 📋 ตารางการจ่ายยา")
+        st.table(final_res[["ICD10", "อาการ", "ยาที่จ่าย", "โดสแนะนำ/ครั้ง", "วิธีใช้", "ยอดรวมทั้งหมด", "คำเตือน"]])
+        st.success(f"✅ คำนวณเสร็จสิ้นสำหรับ {days} วัน")
         
-        if st.button("💾 บันทึกข้อมูลการใช้งาน (Save History)", use_container_width=True):
-            save_log(st.session_state.user, weight, age, selected_displays, final_res['ยาที่จ่าย'].tolist())
-            st.toast("✅ บันทึกข้อมูลลงใน usage_log.csv เรียบร้อยแล้ว!")
-    
-    with st.expander("📂 ดูประวัติการใช้งานล่าสุด"):
-        if os.path.exists("usage_log.csv"):
-            history_df = pd.read_csv("usage_log.csv")
-            st.dataframe(history_df.tail(10), use_container_width=True)
-        else:
-            st.info("ยังไม่มีข้อมูลการบันทึก")
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("💾 บันทึกประวัติการจ่ายยา", use_container_width=True):
+                save_log(st.session_state.user, weight, age, selected_displays, final_res['ยาที่จ่าย'].tolist(), final_res['ยอดรวมทั้งหมด'].tolist())
+                st.toast("✅ บันทึกข้อมูลลง CSV เรียบร้อย!")
+        with c2:
+            st.button("🖨️ พิมพ์ใบสั่งยา", use_container_width=True)
+        
+    else:
+        st.info("💡 โปรดเลือกรายการอาการด้านบนเพื่อเริ่มการคำนวณยา")
 
-    st.markdown("<center><small>© 2026 Kodchayo Medical System</small></center>", unsafe_allow_html=True)
+    # ส่วนแสดงประวัติ
+    with st.expander("📂 ตรวจสอบประวัติการใช้งานล่าสุด"):
+        if os.path.exists("usage_log.csv"):
+            log_df = pd.read_csv("usage_log.csv")
+            st.dataframe(log_df.tail(10), use_container_width=True)
+        else:
+            st.write("ยังไม่มีข้อมูลประวัติ")
+
+    with st.expander("📚 ดูฐานข้อมูลยาเด็ก-ผู้ใหญ่ ทั้ง 60 รายการ"):
+        st.dataframe(df[["ICD10", "อาการ", "ยา_เด็ก", "ยา_ผู้ใหญ่", "วิธีใช้", "คำเตือน"]], use_container_width=True, hide_index=True)
+
+    st.markdown("<br><hr><center><small>© 2026 Kodchayo Medical System | Verified Professional Tool</small></center>", unsafe_allow_html=True)
