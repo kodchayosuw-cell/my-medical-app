@@ -64,7 +64,7 @@ def delete_history():
     return False
 
 # --- 3. ระบบ Login ---
-USERS_DB = {"admin": "password123", "kodchayo_suw": "2012", "Thirachai": "7547"}
+USERS_DB = {"admin": "password123", "kodchayo_suw": "2012", "Thirachai": "7547", "Oilsdu": "164511"}
 
 def login():
     if "logged_in" not in st.session_state: st.session_state.logged_in = False
@@ -247,4 +247,5 @@ if login():
         st.dataframe(df[["ICD10", "อาการ", "ยา_เด็ก", "ยา_ผู้ใหญ่", "วิธีใช้", "คำเตือน"]], use_container_width=True, hide_index=True)
 
     st.markdown("<div style='text-align: center; color: #94a3b8; padding-top: 50px;'><p>© 2026 Kodchayo Medical System</p></div>", unsafe_allow_html=True)
+
 
