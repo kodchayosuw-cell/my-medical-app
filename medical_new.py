@@ -72,7 +72,7 @@ def login():
         _, col2, _ = st.columns([1, 1.2, 1])
         with col2:
             st.markdown("<br><br>", unsafe_allow_html=True)
-            st.markdown("<div class='login-box'><h1 style='text-align: center; color: #1e3a8a;'>⚕️ KODCHAYO</h1><p style='text-align: center; color: #64748b; margin-bottom: 30px;'>Medical Dispensing System 2026</p>", unsafe_allow_html=True)
+            st.markdown("<div class='login-box'><h1 style='text-align: center; color: #1e3a8a;'>⚕️ KODCHAYO</h1><p style='text-align: center; color: #64748b; margin-bottom: 30px;'>Medical Dispensing System 2026 DEMO</p>", unsafe_allow_html=True)
             with st.form("login_form"):
                 user = st.text_input("Username")
                 pw = st.text_input("Password", type="password")
@@ -247,3 +247,4 @@ if login():
         st.dataframe(df[["ICD10", "อาการ", "ยา_เด็ก", "ยา_ผู้ใหญ่", "วิธีใช้", "คำเตือน"]], use_container_width=True, hide_index=True)
 
     st.markdown("<div style='text-align: center; color: #94a3b8; padding-top: 50px;'><p>© 2026 Kodchayo Medical System</p></div>", unsafe_allow_html=True)
+
