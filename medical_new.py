@@ -33,7 +33,7 @@ if login():
             st.session_state.logged_in = False
             st.rerun()
 
-    # --- 3. ฐานข้อมูลยา 45 รายการ (รองรับทั้งเด็กและผู้ใหญ่) ---
+    # --- 3. ฐานข้อมูลยา 60 รายการ (รองรับทั้งเด็กและผู้ใหญ่) ---
     # mg_ml: ความเข้มข้นยา (ถ้ามี), mg_kg: โดสแนะนำต่อ นน. ตัว
     med_list = [
         # --- กลุ่มทางเดินหายใจ ---
@@ -113,7 +113,7 @@ if login():
     type_label = "🧑‍🦲 ผู้ใหญ่" if age >= 12 else "👶 เด็ก"
     st.info(f"ระบบตรวจพบ: **{type_label}** | น้ำหนัก: **{weight} kg** | อายุ: **{age} ปี**")
 
-    selected_displays = st.multiselect("🔍 ค้นหาอาการหรือรหัส ICD-10 (45 รายการ):", sorted(df["display_name"].tolist()))
+    selected_displays = st.multiselect("🔍 ค้นหาอาการหรือรหัส ICD-10 (60 รายการ):", sorted(df["display_name"].tolist()))
     days = st.number_input("📅 จำนวนวันที่ต้องการจ่ายยา:", min_value=1, max_value=30, value=3)
 
     if selected_displays:
@@ -163,7 +163,8 @@ if login():
     else:
         st.info("💡 พิมพ์รหัส ICD-10 เช่น 'R50' หรือชื่ออาการในช่องค้นหาเพื่อเริ่มคำนวณ")
 
-    with st.expander("📚 ดูฐานข้อมูลยาเด็ก-ผู้ใหญ่ ทั้ง 45 รายการ"):
+    with st.expander("📚 ดูฐานข้อมูลยาเด็ก-ผู้ใหญ่ ทั้ง 60 รายการ"):
         st.dataframe(df[["ICD10", "อาการ", "ยา_เด็ก", "ยา_ผู้ใหญ่", "วิธีใช้", "คำเตือน"]], use_container_width=True)
+
 
 
