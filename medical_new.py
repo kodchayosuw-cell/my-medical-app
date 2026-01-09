@@ -5,7 +5,7 @@ import os
 import pytz
 
 # --- 1. การตั้งค่าหน้าจอและการออกแบบ (Enhanced Medical UI) ---
-st.set_page_config(page_title="Kodchayo Medical System 2026", page_icon="⚕️", layout="wide")
+st.set_page_config(page_title="Kodchayo Medical System 2026 DEMO", page_icon="⚕️", layout="wide")
 
 def local_css():
     st.markdown("""
@@ -328,3 +328,4 @@ if login():
             <p>© 2026 Kodchayo Medical System | Verified by Clinical Protocol v2.4</p>
         </div>
     """, unsafe_allow_html=True)
+
