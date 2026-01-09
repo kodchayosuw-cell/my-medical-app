@@ -199,7 +199,7 @@ if login():
                 if cc < 5.0: return "5.0 ml (1 ช้อนชา)"
                 return f"{round(cc, 1)} ml"
             if age >= 12 and "Paracetamol" in row['ยา_ผู้ใหญ่']:
-                if weight >= 75: return "2 เม็ด"
+                if weight >= 70: return "2 เม็ด"
                 if weight <= 34: return "0.5 เม็ด"
                 return "1 เม็ด"
             return "1 หน่วย (มาตรฐาน)"
@@ -230,4 +230,5 @@ if login():
         st.dataframe(df[["ICD10", "อาการ", "ยา_เด็ก", "ยา_ผู้ใหญ่", "วิธีใช้", "คำเตือน"]], use_container_width=True, hide_index=True)
 
     st.markdown("<br><hr><center><small>© 2026 Kodchayo Medical System | Verified for Healthcare Professionals</small></center>", unsafe_allow_html=True)
+
 
