@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
+import os
 
 # --- 1. การตั้งค่าหน้าจอและการออกแบบ (Professional Medical UI) ---
 st.set_page_config(page_title="Kodchayo Medical System 2026", page_icon="⚕️", layout="wide")
@@ -38,11 +40,6 @@ def local_css():
         font-weight: bold;
     }
     
-    /* Dataframe Header */
-    .stDataFrame {
-        border-radius: 10px;
-    }
-    
     /* Highlight Box */
     .med-card {
         background-color: white;
@@ -57,7 +54,34 @@ def local_css():
 
 local_css()
 
-# --- 2. ระบบ Login ---
+# --- 2. ฟังก์ชันจัดการฐานข้อมูลประวัติ (NEW) ---
+LOG_FILE = "medical_history.csv"
+
+def save_to_history(user, weight, age, symptoms, drugs):
+    # เตรียมข้อมูลสำหรับบันทึก
+    new_data = {
+        "วันที่-เวลา": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+        "ผู้จ่ายยา": [user],
+        "น้ำหนัก (kg)": [weight],
+        "อายุ (ปี)": [age],
+        "อาการ": [", ".join(symptoms)],
+        "รายการยาที่จ่าย": [", ".join(drugs)]
+    }
+    new_df = pd.DataFrame(new_data)
+    
+    # บันทึกลง CSV
+    if not os.path.isfile(LOG_FILE):
+        new_df.to_csv(LOG_FILE, index=False, encoding="utf-8-sig")
+    else:
+        new_df.to_csv(LOG_FILE, mode='a', index=False, header=False, encoding="utf-8-sig")
+
+def delete_history():
+    if os.path.exists(LOG_FILE):
+        os.remove(LOG_FILE)
+        return True
+    return False
+
+# --- 3. ระบบ Login ---
 USERS_DB = {"admin": "password123", "kodchayo_suw": "2012", "Thirachai": "7547"}
 
 def login():
@@ -89,7 +113,7 @@ def login():
     return True
 
 if login():
-    # --- 3. Sidebar ข้อมูลคนไข้ ---
+    # --- 4. Sidebar ข้อมูลคนไข้ ---
     with st.sidebar:
         st.markdown("### 👤 ข้อมูลผู้ป่วย")
         weight = st.number_input("น้ำหนักตัว (kg):", min_value=1.0, max_value=200.0, value=15.0)
@@ -100,7 +124,7 @@ if login():
             st.session_state.logged_in = False
             st.rerun()
 
-    # --- 4. ฐานข้อมูลยา (ครบ 60 รายการ) ---
+    # --- 5. ฐานข้อมูลยา ---
     med_list = [
         {"ICD10": "R50.9", "อาการ": "มีไข้ / ตัวร้อน / ปวดหัว", "ยา_เด็ก": "Paracetamol Syrup (120mg/5ml)", "ยา_ผู้ใหญ่": "Paracetamol (500mg)", "mg_ml": 24, "mg_kg": 10, "ความถี่": 4, "วิธีใช้": "ทุก 4-6 ชม. เมื่อมีอาการ", "คำเตือน": "ห้ามกินเกิน 5 ครั้ง/วัน"},
         {"ICD10": "R05", "อาการ": "ไอมีเสมหะ", "ยา_เด็ก": "Bromhexine Syrup (4mg/5ml)", "ยา_ผู้ใหญ่": "Bromhexine (8mg)", "mg_ml": 0.8, "mg_kg": 0.15, "ความถี่": 3, "วิธีใช้": "หลังอาหาร เช้า-กลางวัน-เย็น", "คำเตือน": "ดื่มน้ำตามมากๆ"},
@@ -167,7 +191,7 @@ if login():
     df = pd.DataFrame(med_list)
     df["display_name"] = df["ICD10"] + " - " + df["อาการ"]
 
-    # --- 5. เว็บไซต์หลัก ---
+    # --- 6. เว็บไซต์หลัก ---
     st.markdown(f"## 💊 Kodchayo Smart Dispensing 2026")
     
     type_label = "🧑‍🦲 ผู้ใหญ่" if age >= 12 else "👶 เด็ก"
@@ -221,10 +245,30 @@ if login():
         
         c1, c2, c3 = st.columns(3)
         with c1: st.button("🖨️ พิมพ์ใบสั่งยา", use_container_width=True)
-        with c2: st.button("💾 บันทึกประวัติ", use_container_width=True)
+        with c2: 
+            if st.button("💾 บันทึกประวัติ", use_container_width=True):
+                save_to_history(st.session_state.user, weight, age, selected_displays, final_res['ยาที่จ่าย'].tolist())
+                st.toast("✅ บันทึกประวัติเรียบร้อยแล้ว!")
         
     else:
         st.info("💡 โปรดเลือกรายการอาการด้านบนเพื่อเริ่มการคำนวณยา")
+
+    # --- 7. ส่วนแสดงประวัติการใช้งาน (NEW Section) ---
+    st.divider()
+    st.markdown("### 📂 ประวัติการจ่ายยาในระบบ")
+    
+    if os.path.exists(LOG_FILE):
+        history_df = pd.read_csv(LOG_FILE)
+        st.dataframe(history_df, use_container_width=True, hide_index=True)
+        
+        col_del1, col_del2 = st.columns([1, 5])
+        with col_del1:
+            if st.button("🗑️ ล้างประวัติทั้งหมด"):
+                if delete_history():
+                    st.success("ลบประวัติเรียบร้อย!")
+                    st.rerun()
+    else:
+        st.write("ยังไม่มีข้อมูลประวัติการบันทึก")
 
     with st.expander("📚 ดูฐานข้อมูลยาเด็ก-ผู้ใหญ่ ทั้ง 60 รายการ"):
         st.dataframe(df[["ICD10", "อาการ", "ยา_เด็ก", "ยา_ผู้ใหญ่", "วิธีใช้", "คำเตือน"]], use_container_width=True, hide_index=True)
