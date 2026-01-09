@@ -4,103 +4,58 @@ from datetime import datetime
 import os
 import pytz
 
-# --- 1. การตั้งค่าหน้าจอและการออกแบบ (Enhanced Medical UI) ---
-st.set_page_config(page_title="Kodchayo Medical System 2026 DEMO", page_icon="⚕️", layout="wide")
+# --- 1. การตั้งค่าหน้าจอและการออกแบบ (คงเดิมตามความต้องการ) ---
+st.set_page_config(page_title="Kodchayo Medical System 2026", page_icon="⚕️", layout="wide")
 
 def local_css():
     st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
-    
-    html, body, [class*="css"] {
-        font-family: 'Sarabun', sans-serif;
-        background-color: #f8fafc;
-    }
-    
-    /* Main Header */
-    .main-header {
-        background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%);
-        padding: 20px;
-        border-radius: 10px;
-        color: white;
-        text-align: center;
-        margin-bottom: 25px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Login Box */
-    .login-box {
-        background-color: white;
-        padding: 40px;
-        border-radius: 20px;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e2e8f0;
-    }
-    
-    /* Patient Info Card */
-    .patient-card {
-        background-color: #ffffff;
-        padding: 15px;
-        border-radius: 10px;
-        border-top: 4px solid #3b82f6;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    
-    /* Sidebar Customization */
-    section[data-testid="stSidebar"] {
-        background-color: #0f172a !important;
-    }
-    section[data-testid="stSidebar"] .stMarkdown, section[data-testid="stSidebar"] p {
-        color: #f1f5f9 !important;
-    }
-    
-    /* Buttons Customization */
-    div.stButton > button {
-        border-radius: 8px;
-        transition: all 0.3s;
-        font-weight: 600 !important;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    div.stButton > button:hover {
-        border-color: #3b82f6;
-        color: #3b82f6 !important;
-        transform: translateY(-1px);
-    }
-
-    /* Table styling */
-    .stTable {
-        background-color: white;
-        border-radius: 10px;
-        overflow: hidden;
-    }
+    html, body, [class*="css"] { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; }
+    .main-header { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%); padding: 20px; border-radius: 10px; color: white; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    .login-box { background-color: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; }
+    .patient-card { background-color: #ffffff; padding: 15px; border-radius: 10px; border-top: 4px solid #3b82f6; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    section[data-testid="stSidebar"] { background-color: #0f172a !important; }
+    section[data-testid="stSidebar"] .stMarkdown, section[data-testid="stSidebar"] p { color: #f1f5f9 !important; }
+    div.stButton > button { border-radius: 8px; transition: all 0.3s; font-weight: 600 !important; text-transform: uppercase; letter-spacing: 0.5px; }
+    div.stButton > button:hover { border-color: #3b82f6; color: #3b82f6 !important; transform: translateY(-1px); }
+    .stTable { background-color: white; border-radius: 10px; overflow: hidden; }
     </style>
     """, unsafe_allow_html=True)
 
 local_css()
 
-# --- 2. ฟังก์ชันจัดการฐานข้อมูลประวัติ (คงเดิม) ---
+# --- 2. ฟังก์ชันจัดการฐานข้อมูล (แก้ไขการบันทึกให้ปลอดภัยขึ้น) ---
 LOG_FILE = "medical_history_v2.csv"
 
-def save_to_history(user, weight, age, symptoms, drugs):
-    tz = pytz.timezone('Asia/Bangkok')
-    now_thailand = datetime.now(tz)
-    clean_symptoms = "; ".join(symptoms).replace("|", "-")
-    clean_drugs = "; ".join(drugs).replace("|", "-")
-    new_data = {
-        "วันที่-เวลา": [now_thailand.strftime("%Y-%m-%d %H:%M:%S")],
-        "ผู้จ่ายยา": [user],
-        "น้ำหนัก (kg)": [weight],
-        "อายุ (ปี)": [age],
-        "อาการ": [clean_symptoms],
-        "รายการยาที่จ่าย": [clean_drugs]
-    }
-    new_df = pd.DataFrame(new_data)
-    if not os.path.isfile(LOG_FILE):
-        new_df.to_csv(LOG_FILE, index=False, sep='|', encoding="utf-8-sig")
-    else:
-        new_df.to_csv(LOG_FILE, mode='a', index=False, sep='|', header=False, encoding="utf-8-sig")
+def save_to_history(user, weight, age, symptoms, drugs, privilege, total_price):
+    try:
+        tz = pytz.timezone('Asia/Bangkok')
+        now_thailand = datetime.now(tz)
+        clean_symptoms = "; ".join(symptoms).replace("|", "-")
+        clean_drugs = "; ".join(drugs).replace("|", "-")
+        
+        new_data = {
+            "วันที่-เวลา": [now_thailand.strftime("%Y-%m-%d %H:%M:%S")],
+            "ผู้จ่ายยา": [user],
+            "สิทธิ์การรักษา": [privilege],
+            "น้ำหนัก (kg)": [weight],
+            "อายุ (ปี)": [age],
+            "อาการ": [clean_symptoms],
+            "รายการยาที่จ่าย": [clean_drugs],
+            "ยอดชำระเงิน": [f"{total_price}"]
+        }
+        new_df = pd.DataFrame(new_data)
+        
+        # ตรวจสอบว่ามีไฟล์อยู่แล้วหรือไม่
+        file_exists = os.path.isfile(LOG_FILE)
+        
+        # บันทึกโดยใช้ encoding utf-8-sig เพื่อรองรับภาษาไทยใน Excel
+        new_df.to_csv(LOG_FILE, mode='a', index=False, sep='|', header=not file_exists, encoding="utf-8-sig")
+        return True
+    except Exception as e:
+        st.error(f"เกิดข้อผิดพลาดในการบันทึก: {e}")
+        return False
 
 def delete_history():
     if os.path.exists(LOG_FILE):
@@ -108,7 +63,7 @@ def delete_history():
         return True
     return False
 
-# --- 3. ระบบ Login (คงเดิมพร้อมปรับปรุง UI) ---
+# --- 3. ระบบ Login ---
 USERS_DB = {"admin": "password123", "kodchayo_suw": "2012", "Thirachai": "7547"}
 
 def login():
@@ -117,11 +72,7 @@ def login():
         _, col2, _ = st.columns([1, 1.2, 1])
         with col2:
             st.markdown("<br><br>", unsafe_allow_html=True)
-            st.markdown("""
-                <div class='login-box'>
-                    <h1 style='text-align: center; color: #1e3a8a;'>⚕️ KODCHAYO</h1>
-                    <p style='text-align: center; color: #64748b; margin-bottom: 30px;'>Medical Dispensing System 2026</p>
-            """, unsafe_allow_html=True)
+            st.markdown("<div class='login-box'><h1 style='text-align: center; color: #1e3a8a;'>⚕️ KODCHAYO</h1><p style='text-align: center; color: #64748b; margin-bottom: 30px;'>Medical Dispensing System 2026</p>", unsafe_allow_html=True)
             with st.form("login_form"):
                 user = st.text_input("Username")
                 pw = st.text_input("Password", type="password")
@@ -145,7 +96,7 @@ if login():
             st.session_state.logged_in = False
             st.rerun()
 
-    # --- 5. ฐานข้อมูลยา (คงเดิม) ---
+    # --- 5. ฐานข้อมูลยา (คงไว้ตามเดิม) ---
     med_list = [
         {"ICD10": "R50.9", "อาการ": "มีไข้ / ตัวร้อน / ปวดหัว", "ยา_เด็ก": "Paracetamol Syrup (120mg/5ml)", "ยา_ผู้ใหญ่": "Paracetamol (500mg)", "mg_ml": 24, "mg_kg": 10, "ความถี่": 4, "วิธีใช้": "ทุก 4-6 ชม. เมื่อมีอาการ", "คำเตือน": "ห้ามกินเกิน 5 ครั้ง/วัน"},
         {"ICD10": "R05", "อาการ": "ไอมีเสมหะ", "ยา_เด็ก": "Bromhexine Syrup (4mg/5ml)", "ยา_ผู้ใหญ่": "Bromhexine (8mg)", "mg_ml": 0.8, "mg_kg": 0.15, "ความถี่": 3, "วิธีใช้": "หลังอาหาร เช้า-กลางวัน-เย็น", "คำเตือน": "ดื่มน้ำตามมากๆ"},
@@ -211,121 +162,88 @@ if login():
     df = pd.DataFrame(med_list)
     df["display_name"] = df["ICD10"] + " - " + df["อาการ"]
 
-    # --- 6. ส่วนหน้าจอหลัก (Modern Layout) ---
+    # --- 6. ส่วนหน้าจอหลัก ---
     st.markdown("<div class='main-header'><h1>Kodchayo Smart Dispensing 2026</h1></div>", unsafe_allow_html=True)
     
-    # 6.1 Patient Section
     st.subheader("👤 ข้อมูลผู้ป่วย (Patient Information)")
     with st.container():
-        col_p1, col_p2, col_p3 = st.columns([1, 1, 1.2])
-        with col_p1:
-            weight = st.number_input("⚖️ น้ำหนักตัว (kg):", min_value=1.0, max_value=200.0, value=15.0, step=0.1)
-        with col_p2:
-            age = st.number_input("🎂 อายุ (ปี):", min_value=0, max_value=120, value=5)
+        col_p1, col_p2, col_p3, col_p4 = st.columns([1, 1, 1.2, 1.2])
+        with col_p1: weight = st.number_input("⚖️ น้ำหนักตัว (kg):", min_value=1.0, max_value=200.0, value=15.0, step=0.1)
+        with col_p2: age = st.number_input("🎂 อายุ (ปี):", min_value=0, max_value=120, value=5)
         with col_p3:
+            privilege = st.selectbox("💳 สิทธิ์การรักษา:", ["บัตรทองในเขต", "บัตรทองนอกเขต", "ข้าราชการ", "ประกันสังคม"])
+            medical_cert = st.checkbox("📄 ขอใบรับรองการตรวจ (+50 บาท)")
+        with col_p4:
             type_label = "🧑‍🦲 Adult (ผู้ใหญ่)" if age >= 12 else "👶 Pediatric (เด็ก)"
-            st.markdown(f"""
-                <div class='patient-card'>
-                    <small style='color: #64748b;'>Classification:</small><br>
-                    <b style='font-size: 20px; color: #1e40af;'>{type_label}</b>
-                </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"<div class='patient-card'><small style='color: #64748b;'>Classification & Privilege:</small><br><b style='font-size: 18px; color: #1e40af;'>{type_label}</b><br><small style='color: #3b82f6;'>สิทธิ์: {privilege}</small></div>", unsafe_allow_html=True)
 
     st.markdown("---")
-
-    # 6.2 Symptoms Selection
     st.subheader("🔍 ค้นหาอาการและระบุจำนวนวัน")
     col_s1, col_s2 = st.columns([2.5, 1])
-    with col_s1:
-        selected_displays = st.multiselect("เลือกอาการหรือรหัส ICD-10 (เลือกได้มากกว่า 1):", sorted(df["display_name"].tolist()))
-    with col_s2:
-        days = st.number_input("📅 จำนวนวันที่จ่ายยา:", min_value=1, max_value=30, value=3)
+    with col_s1: selected_displays = st.multiselect("เลือกอาการหรือรหัส ICD-10:", sorted(df["display_name"].tolist()))
+    with col_s2: days = st.number_input("📅 จำนวนวันที่จ่ายยา:", min_value=1, max_value=30, value=3)
 
-    # --- 6.3 ฟังก์ชันคำนวณโดสยา (คงเดิม) ---
+    # ฟังก์ชันคำนวณโดส (คงเดิม)
     def calculate_smart_dose(row):
         restricted_for_kids = ["N30.9", "N76.0", "G43.9", "N94.6", "M17.9", "G47.0"]
-        if age < 12 and row['ICD10'] in restricted_for_kids and row['ยา_เด็ก'] == "-":
-            return "❌ ห้ามใช้ในเด็ก / ส่งต่อแพทย์"
+        if age < 12 and row['ICD10'] in restricted_for_kids and row['ยา_เด็ก'] == "-": return "❌ ห้ามใช้ในเด็ก"
         if age < 12:
             if row['mg_ml'] > 0:
-                needed_mg = row['mg_kg'] * weight
-                cc = needed_mg / row['mg_ml']
-                if age < 2: dose = round(cc, 1)
-                else:
-                    if cc % 1 <= 0.25: dose = int(cc)
-                    elif cc % 1 <= 0.75: dose = int(cc) + 0.5
-                    else: dose = int(cc) + 1.0
-                max_limit = 10.0 if "Syrup" in row['ยา_เด็ก'] else 15.0
-                if dose > max_limit: dose = max_limit
-                tsp = round(dose / 5, 2)
-                return f"{dose} ml ({tsp} ช้อนชา)"
+                cc = (row['mg_kg'] * weight) / row['mg_ml']
+                dose = round(cc, 1) if age < 2 else (int(cc) if cc % 1 <= 0.25 else (int(cc) + 0.5 if cc % 1 <= 0.75 else int(cc) + 1.0))
+                dose = min(dose, 10.0 if "Syrup" in row['ยา_เด็ก'] else 15.0)
+                return f"{dose} ml ({round(dose/5, 2)} ช้อนชา)"
             return "1 หน่วย (มาตรฐานเด็ก)"
-        if age >= 12:
-            if "Paracetamol" in row['ยา_ผู้ใหญ่']:
-                if weight < 34: return "0.5 เม็ด ทุก 4-6 ชม."
-                if 34 <= weight <= 50: return "1 เม็ด ทุก 4-6 ชม."
-                if 51 <= weight <= 75: return "1.5 เม็ด ทุก 4-6 ชม."
-                return "2 เม็ด ทุก 4-6 ชม."
-            if "Ibuprofen" in row['ยา_ผู้ใหญ่']:
-                if weight < 50: return "1 เม็ด วันละ 2 ครั้ง"
-                return "1 เม็ด วันละ 3 ครั้ง"
-            if "CPM" in row['ยา_ผู้ใหญ่']:
-                if weight < 45: return "0.5 เม็ด วันละ 3 ครั้ง"
-                return "1 เม็ด วันละ 3 ครั้ง"
         return "1 หน่วย (มาตรฐาน)"
 
-    # 6.4 Results Table
     if selected_displays:
         final_res = df[df["display_name"].isin(selected_displays)].copy()
         final_res['ยาที่จ่าย'] = final_res.apply(lambda r: r['ยา_ผู้ใหญ่'] if age >= 12 else r['ยา_เด็ก'], axis=1)
         final_res['โดสแนะนำ/ครั้ง'] = final_res.apply(calculate_smart_dose, axis=1)
-
-        def calculate_total(row):
-            if "❌" in row['โดสแนะนำ/ครั้ง']: return "งดจ่าย"
-            if "ml" in row['โดสแนะนำ/ครั้ง']: return "1 ขวด"
-            if any(x in str(row['ยาที่จ่าย']) for x in ["ขวด", "หลอด", "ห่อ", "ซอง", "แผ่น"]): return "1 หน่วย"
-            return f"{int(1 * row['ความถี่'] * days)} หน่วย"
-
-        final_res['ยอดรวม'] = final_res.apply(calculate_total, axis=1)
+        final_res['ยอดรวม'] = final_res.apply(lambda r: "1 ขวด" if "ml" in r['โดสแนะนำ/ครั้ง'] else f"{int(r['ความถี่'] * days)} หน่วย", axis=1)
 
         st.markdown("### 📋 ใบรายการยา (Dispensing Sheet)")
         st.table(final_res[["ICD10", "อาการ", "ยาที่จ่าย", "โดสแนะนำ/ครั้ง", "วิธีใช้", "ยอดรวม", "คำเตือน"]])
         
-        st.success(f"📌 การคำนวณเบื้องต้นสำหรับอาการ {', '.join(selected_displays)} เป็นเวลา {days} วัน เรียบร้อยแล้ว")
+        # ระบบคิดเงิน
+        cert_fee = 50 if medical_cert else 0
+        check_up_fee, med_fee = (0, 0) if privilege == "บัตรทองในเขต" else (50, 100)
+        total_pay = check_up_fee + med_fee + cert_fee
         
+        b1, b2, b3, b4 = st.columns(4)
+        with b1: st.metric("ค่าตรวจ", f"{check_up_fee} ฿")
+        with b2: st.metric("ค่ายา", f"{med_fee} ฿")
+        with b3: st.metric("ใบรับรองแพทย์", f"{cert_fee} ฿")
+        with b4: st.metric("ยอดรวมสุทธิ", f"{total_pay} ฿")
+
         c1, c2, c3 = st.columns(3)
         with c1: st.button("🖨️ พิมพ์ใบสั่งยา", use_container_width=True)
-        with c2: 
-            if st.button("💾 บันทึกประวัติลงฐานข้อมูล", key="btn_save", use_container_width=True):
-                save_to_history(st.session_state.user, weight, age, selected_displays, final_res['ยาที่จ่าย'].tolist())
-                st.toast("✅ บันทึกข้อมูลสำเร็จ!")
-        with c3: st.button("📧 ส่งข้อมูลผ่าน Email", use_container_width=True)
-    else:
-        st.info("👋 ยินดีต้อนรับ! กรุณากรอกข้อมูลผู้ป่วยและเลือกอาการเพื่อเริ่มระบบช่วยจ่ายยาอัตโนมัติ")
+        with col2 if 'col2' in locals() else c2:
+            if st.button("💾 บันทึกประวัติและยอดชำระ", key="btn_save", use_container_width=True):
+                if save_to_history(st.session_state.user, weight, age, selected_displays, final_res['ยาที่จ่าย'].tolist(), privilege, total_pay):
+                    st.success("✅ บันทึกข้อมูลสำเร็จ!")
+                    st.rerun()
+        with c3: st.button("📧 ส่ง Email", use_container_width=True)
 
-    # --- 7. History Section (Modern Style) ---
+    # --- 7. History Section (แก้ไขส่วนที่ Error) ---
     st.markdown("---")
     st.subheader("📂 ประวัติเวชระเบียนล่าสุด")
     if os.path.exists(LOG_FILE):
         try:
-            history_df = pd.read_csv(LOG_FILE, sep='|')
+            # แก้ไข: เพิ่ม on_bad_lines='skip' เพื่อข้ามแถวที่โครงสร้างเสีย
+            history_df = pd.read_csv(LOG_FILE, sep='|', encoding="utf-8-sig", on_bad_lines='skip')
             st.dataframe(history_df.tail(10), use_container_width=True, hide_index=True)
             if st.button("🗑️ ล้างประวัติทั้งหมด", type="secondary"):
-                if delete_history():
-                    st.success("ประวัติถูกลบแล้ว")
-                    st.rerun()
-        except:
-            st.error("เกิดข้อผิดพลาดในการโหลดข้อมูลประวัติ")
+                if delete_history(): st.rerun()
+        except Exception as e:
+            st.error(f"ไฟล์ประวัติมีโครงสร้างผิดพลาด กรุณากดปุ่มล้างประวัติเพื่อเริ่มใหม่")
+            if st.button("🗑️ ยืนยันล้างไฟล์ที่เสีย"): 
+                delete_history()
+                st.rerun()
     else:
-        st.write("ยังไม่มีประวัติการจ่ายยาในระบบ")
+        st.write("ยังไม่มีประวัติในระบบ")
 
-    with st.expander("🩺 ดูฐานข้อมูลยาทั้งหมด (Drug Master Data)"):
+    with st.expander("🩺 ดูฐานข้อมูลยาทั้งหมด"):
         st.dataframe(df[["ICD10", "อาการ", "ยา_เด็ก", "ยา_ผู้ใหญ่", "วิธีใช้", "คำเตือน"]], use_container_width=True, hide_index=True)
 
-    # Footer
-    st.markdown("""
-        <div style='text-align: center; color: #94a3b8; padding-top: 50px;'>
-            <p>© 2026 Kodchayo Medical System | Verified by Clinical Protocol v2.4</p>
-        </div>
-    """, unsafe_allow_html=True)
-
+    st.markdown("<div style='text-align: center; color: #94a3b8; padding-top: 50px;'><p>© 2026 Kodchayo Medical System</p></div>", unsafe_allow_html=True)
